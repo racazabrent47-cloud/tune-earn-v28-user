@@ -1,0 +1,3 @@
+# TUNE EARN V28 USER - Connected to CEO V28 Admin - MAIN_CEO_BRENT
+AdMob Real: 7813593140749854
+Vault: ceo_vault/MAIN_CEO_BRENT - 50/50

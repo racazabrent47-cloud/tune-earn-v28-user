@@ -5,22 +5,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          name: Checkout code
       - uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
-          name: Setup Java
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.22.0'
-          name: Setup Flutter
       - name: Fix Android Folder - Generate Fresh
         run: |
           rm -rf android
-          flutter create . --platforms=android
-          # Copy valid manifest
+          flutter create --project-name tune_earn_v28_user --platforms=android.
+          # Override manifest with valid legal manifest
           cat > android/app/src/main/AndroidManifest.xml << 'EOF'
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <uses-permission android:name="android.permission.INTERNET"/>
@@ -39,8 +35,6 @@ jobs:
               </application>
           </manifest>
           EOF
-          # Fix firebase_options import if needed
-          ls lib/
       - name: Get dependencies
         run: flutter pub get
       - name: Build APK Release

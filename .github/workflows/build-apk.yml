@@ -24,16 +24,18 @@ jobs:
           flutter create --project-name tune_earn_v28_admin --org com.tuneearn.v34 --platforms android .
           mkdir -p android/app
           cp /tmp/save/google-services.json android/app/ 2>/dev/null || true
-      - name: Fix AdMob App ID - Kaya nag fail sa 180
+      - name: Fix Manifest VALID XML - Line 9-10 Fix
         run: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
-          if ! grep -q "com.google.android.gms.ads.APPLICATION_ID" $MANIFEST; then
-            sed -i '/<application/a \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-7813593140749854~2071970424"\/>' $MANIFEST
-          fi
+          # DELETE old broken meta if exists
+          sed -i '/APPLICATION_ID/d' $MANIFEST
+          # INSERT valid meta-data before </application>
+          sed -i 's|</application>|    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-7813593140749854~2071970424" />\n    </application>|' $MANIFEST
+          echo "=== FIXED MANIFEST ==="
           cat $MANIFEST
       - run: flutter pub get
       - run: flutter build apk --release --no-tree-shake-icons
       - uses: actions/upload-artifact@v4
         with:
-          name: TuneEarn-V34-CROSS-APK-FIXED-190
+          name: TuneEarn-V34-CROSS-APK-9-10-FIXED
           path: build/app/outputs/flutter-apk/app-release.apk

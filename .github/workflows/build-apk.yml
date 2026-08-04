@@ -19,23 +19,33 @@ jobs:
         run: |
           mkdir -p /tmp/save
           cp android/app/google-services.json /tmp/save/ 2>/dev/null || true
+          ls -lh /tmp/save/ || echo "no json backup"
       - run: |
           rm -rf android
           flutter create --project-name tune_earn_v28_admin --org com.tuneearn.v34 --platforms android .
           mkdir -p android/app
           cp /tmp/save/google-services.json android/app/ 2>/dev/null || true
-      - name: Fix Manifest VALID XML - Line 9-10 Fix
+          ls -lh android/app/google-services.json || echo "MISSING JSON - KAYA FAIL 186"
+      - name: Fix Manifest + Google Services Plugin - 186 Fix
         run: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
-          # DELETE old broken meta if exists
           sed -i '/APPLICATION_ID/d' $MANIFEST
-          # INSERT valid meta-data before </application>
           sed -i 's|</application>|    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-7813593140749854~2071970424" />\n    </application>|' $MANIFEST
-          echo "=== FIXED MANIFEST ==="
-          cat $MANIFEST
+          # ADD google-services plugin sa app/build.gradle kung wala
+          APP_GRADLE=android/app/build.gradle
+          if ! grep -q "google-services" $APP_GRADLE; then
+            echo "apply plugin: 'com.google.gms.google-services'" >> $APP_GRADLE
+          fi
+          # ADD classpath sa android/build.gradle kung wala
+          ROOT_GRADLE=android/build.gradle
+          if ! grep -q "google-services" $ROOT_GRADLE; then
+            sed -i "/dependencies {/a \        classpath 'com.google.gms:google-services:4.4.1'" $ROOT_GRADLE
+          fi
+          cat $MANIFEST | tail -20
+          cat $APP_GRADLE | tail -20
       - run: flutter pub get
-      - run: flutter build apk --release --no-tree-shake-icons
+      - run: flutter build apk --release --no-tree-shake-icons --verbose
       - uses: actions/upload-artifact@v4
         with:
-          name: TuneEarn-V34-CROSS-APK-9-10-FIXED
+          name: TuneEarn-V34-CROSS-APK-186-FIXED
           path: build/app/outputs/flutter-apk/app-release.apk

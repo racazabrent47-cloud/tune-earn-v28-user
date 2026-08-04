@@ -15,8 +15,7 @@ jobs:
       - name: Fix Android Folder - Generate Fresh
         run: |
           rm -rf android
-          flutter create --project-name tune_earn_v28_user --platforms=android.
-          # Override manifest with valid legal manifest
+          flutter create --project-name tune_earn_v28_user --platforms android.
           cat > android/app/src/main/AndroidManifest.xml << 'EOF'
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <uses-permission android:name="android.permission.INTERNET"/>

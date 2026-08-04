@@ -1,4 +1,4 @@
-name: Tune Earn V33 Final Private APK
+name: Tune Earn V34 WITH CROSS GOD FIRST
 on:
   push:
     branches: [ main ]
@@ -14,13 +14,19 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          flutter-version: '3.22.0'
+          flutter-version: '3.22.3'
+      - name: Backup google-services
+        run: |
+          mkdir -p /tmp/save
+          cp android/app/google-services.json /tmp/save/ 2>/dev/null || true
       - run: |
           rm -rf android
-          flutter create --project-name tune_earn_v33_final_private --org com.tuneearn.v33 --platforms android .
+          flutter create --project-name tune_earn_v28_admin --org com.tuneearn.v34 --platforms android .
+          mkdir -p android/app
+          cp /tmp/save/google-services.json android/app/ 2>/dev/null || true
       - run: flutter pub get
       - run: flutter build apk --release --no-tree-shake-icons
       - uses: actions/upload-artifact@v4
         with:
-          name: TuneEarn-V33-FINAL-PRIVATE-APK-WORLD-FEED
+          name: TuneEarn-V34-CROSS-GOD-FIRST-APK
           path: build/app/outputs/flutter-apk/app-release.apk

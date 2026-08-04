@@ -1,63 +1,52 @@
-name: Build V28 User APK - CEO BRENT FIXED V2
-
-on:
-  push:
-    branches: [ main ]
-
+name: build
+on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+        with:
+          name: Checkout code
+      - uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+          name: Setup Java
+      - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.22.0'
-          channel: 'stable'
-
+          name: Setup Flutter
       - name: Fix Android Folder - Generate Fresh
         run: |
-          # Backup important files
-          cp pubspec.yaml pubspec.yaml.bak
-          cp -r lib lib.bak
-          mkdir -p /tmp/backup_app
-          cp android/app/google-services.json /tmp/backup_app/ 2>/dev/null || echo "no json yet"
-          
-          # Remove incomplete android folder and recreate with v2 embedding
           rm -rf android
-          flutter create --platforms=android --project-name tune_earn_v28_user .
-          
-          # Restore our files
-          mv pubspec.yaml.bak pubspec.yaml
-          rm -rf lib
-          mv lib.bak lib
-          mkdir -p android/app
-          cp /tmp/backup_app/google-services.json android/app/ 2>/dev/null || echo "using dummy"
-          
-          # Add AdMob App ID to AndroidManifest
-          echo "Fixing AndroidManifest for AdMob..."
-          MANIFEST="android/app/src/main/AndroidManifest.xml"
-          if ! grep -q "com.google.android.gms.ads.APPLICATION_ID" "$MANIFEST"; then
-            sed -i '/<application/a \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-7813593140749854~1234567890" />' "$MANIFEST"
-          fi
-          cat "$MANIFEST"
-
+          flutter create . --platforms=android
+          # Copy valid manifest
+          cat > android/app/src/main/AndroidManifest.xml << 'EOF'
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <uses-permission android:name="android.permission.INTERNET"/>
+              <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+              <uses-permission android:name="com.google.android.gms.permission.AD_ID"/>
+              <application android:label="Tune Earn" android:name="${applicationName}" android:icon="@mipmap/launcher_icon">
+                  <activity android:name=".MainActivity" android:exported="true" android:launchMode="singleTop" android:theme="@style/LaunchTheme" android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode" android:hardwareAccelerated="true" android:windowSoftInputMode="adjustResize">
+                      <meta-data android:name="io.flutter.embedding.android.NormalTheme" android:resource="@style/NormalTheme"/>
+                      <intent-filter android:autoVerify="true">
+                          <action android:name="android.intent.action.MAIN"/>
+                          <category android:name="android.intent.category.LAUNCHER"/>
+                      </intent-filter>
+                  </activity>
+                  <meta-data android:name="flutterEmbedding" android:value="2"/>
+                  <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-7813593140749854~1234567890"/>
+              </application>
+          </manifest>
+          EOF
+          # Fix firebase_options import if needed
+          ls lib/
       - name: Get dependencies
         run: flutter pub get
-
       - name: Build APK Release
         run: flutter build apk --release --no-tree-shake-icons
-
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: tune-earn-v28-user-apk-FIXED
+          name: app-release
           path: build/app/outputs/flutter-apk/app-release.apk

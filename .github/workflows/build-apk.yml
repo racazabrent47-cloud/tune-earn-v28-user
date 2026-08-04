@@ -1,4 +1,4 @@
-name: Tune Earn V34 WITH CROSS GOD FIRST
+name: Tune Earn V34 CROSS FINAL
 on:
   push:
     branches: [ main ]
@@ -24,9 +24,16 @@ jobs:
           flutter create --project-name tune_earn_v28_admin --org com.tuneearn.v34 --platforms android .
           mkdir -p android/app
           cp /tmp/save/google-services.json android/app/ 2>/dev/null || true
+      - name: Fix AdMob App ID - Kaya nag fail sa 180
+        run: |
+          MANIFEST=android/app/src/main/AndroidManifest.xml
+          if ! grep -q "com.google.android.gms.ads.APPLICATION_ID" $MANIFEST; then
+            sed -i '/<application/a \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-7813593140749854~2071970424"\/>' $MANIFEST
+          fi
+          cat $MANIFEST
       - run: flutter pub get
       - run: flutter build apk --release --no-tree-shake-icons
       - uses: actions/upload-artifact@v4
         with:
-          name: TuneEarn-V34-CROSS-GOD-FIRST-APK
+          name: TuneEarn-V34-CROSS-APK-FIXED-190
           path: build/app/outputs/flutter-apk/app-release.apk
